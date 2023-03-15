@@ -1,0 +1,280 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+library(skimr)
+library(janitor)
+library(stringr)
+```
+
+```{r}
+candy_raw_2015 <- read_excel(
+  here("raw_data/boing-boing-candy-2015.xlsx"))
+candy_raw_2016 <- read_excel(
+  here("raw_data/boing-boing-candy-2016.xlsx"))
+candy_raw_2017 <- read_excel(
+  here("raw_data/boing-boing-candy-2017.xlsx"))
+
+view(candy_raw_2015)
+view(candy_raw_2016)
+view(candy_raw_2017)
+```
+
+
+```{r}
+candy_clean_2016 <- clean_names(candy_raw_2016) 
+candy_clean_2017 <- clean_names(candy_raw_2017) 
+```
+
+
+```{r}
+#2016 generating year in numeric format and assigning column names for binding
+candy_clean_2016 <- candy_clean_2016 %>% 
+  mutate(Year = as.numeric(str_sub(timestamp, start = 1, end = 4)),
+         .after = timestamp) %>% 
+  rename(Country = which_country_do_you_live_in,
+         State_or_Province = which_state_province_county_do_you_live_in)
+
+```
+
+
+```{r}
+#2017 generating year in numeric format and assigning column names for binding
+
+candy_clean_2017 <- candy_clean_2017 %>% 
+  mutate(Year = as.numeric(2017),
+.after = internal_id)%>% 
+  rename(Country = q4_country,
+         State_or_Province = q5_state_province_county_etc)
+```
+
+
+```{r}
+#selecting columns
+candy_selection_2016 <- candy_clean_2016 %>% 
+  select(Year, Country, State_or_Province)
+
+candy_selection_2017 <- candy_clean_2017 %>% 
+  select(Year, Country, State_or_Province)
+```
+
+```{r}
+#binding years
+
+candy_country <- rbind(candy_selection_2016,candy_selection_2017)
+
+candy_country
+```
+
+
+```{r}
+#NOTES
+#Endland has "Kent" as province thus assumed UK for country
+#Trumpistan has "Minnesota" and "Illinois" as state/province thus assumed US for country
+#N. America has "Illinois" as state/province thus assumed US for country 
+#Ud has "NY" has state/province thus assumed New York and US for country
+#Unhinged States has California has state/province thus assumed New York and US for country
+#Can has "Ontario" as state/province thus assumed Canada for country
+#Canae has "Bc" as state/province thus assumed British Columbia and Canada for country 
+#Europe has been assumed country Unknown as country = Europe but conflicts with "America" as state/province 
+#Murrika has "washington" as state/province thus assumed US for country
+#Eua has "MI" as  state/province thus assumed Michigan and US for country
+#changed to English spelling for all i.e Brazil and Spain
+#Narnia has "Pennsylvania" as state/province thus assumed US for country
+#Cascadia with WA as state/province thus assumed Washington and US for country
+# Murica with NJ as state/province thus assumed New Jersey and US for country
+# Murica with Gawja as state/province has been assumed country Unknown as state hasn't confirmed country as US
+# "Ussa" with Taxachusetts as state/province has been assumed as Massachusetts and US for country
+# where country is NA but "CA" as	state/province, assumed California and thus US for country
+# where country is NA but "WA" as	state/province, assumed Washington and thus US for country
+# where country is NA but "Massachusetts" as state/province thus assumed US for country		
+# where country is NA but "Arizona" as state/province thus assumed US for country	
+# where country is NA but "Illinois" as state/province thus assumed US for country	
+# where country is NA but "PA" as	state/province, assumed Pennsylvania and thus US for country
+# where country is NA but "USA" or "United States" as state/province thus assumed US for country
+
+
+#Country data - changing to title case
+candy_country_clean <- candy_country %>% 
+  mutate(country_new = str_to_title(Country),
+         .after = Country) %>% 
+  
+  #cleaning data for US entries
+  mutate(country_new = 
+           case_when(country_new %in% c("'Merica",
+                                        "Ahem....Amerca",
+                                        "Alaska",
+                                        "America",
+                                        "California",
+                                        "Eua",
+                                        "I Pretend To Be From Canada, But I Am Really From The United States.",
+                                        "Merica",
+                                        "Murrika",
+                                        "N. America",
+                                        "Narnia",
+                                        "New Jersey",
+                                        "New York",
+                                        "North Carolina",
+                                        "Pittsburgh",
+                                        "The Best One - Usa",
+                                        "The United States Of America",
+                                        "The United States",
+                                        "The Yoo Ess Of Aaayyyyyy",
+                                        "Trumpistan",
+                                        "U S A",
+                                        "U S",
+                                        "U.s.",
+                                        "U.s.a.",
+                                        "Ud",
+                                        "Unhinged States",
+                                        "Unied States",
+                                        "Unite States",
+                                        "United  States Of America",
+                                        "United Sates",
+                                        "United Staes",
+                                        "United State",
+                                        "United Statea",
+                                        "United Stated",
+                                        "united states",
+                                        "United States Of America",
+                                        "United States",
+                                        "United Statss",
+                                        "United Stetes",
+                                        "United Ststes",
+                                        "Unites States",
+                                        "Units States",
+                                        "Us Of A",
+                                        "Us",
+                                        "Usa (I Think But It's An Election Year So Who Can Really Tell)",
+                                        "Usa Usa Usa Usa",
+                                        "Usa Usa Usa!!!!",
+                                        "Usa Usa Usa",
+                                        "Usa! Usa! Usa!", 
+                                        "Usa! Usa!", 
+                                        "Usa!!!!!!",
+                                        "Usa!",
+                                        "Usa",
+                                        "uSA",
+                                        "usa",
+                                        "Usa? Hard To Tell Anymore..",
+                                        "Usaa",
+                                        "Usas",
+                                        "Usausausa",
+                                        "USSA",
+                                        "Ussa",
+                                        "united states") ~ "US",
+                     (country_new == "Cascadia") & (State_or_Province == "WA") ~ "US",
+                     (country_new == "Murica") & (State_or_Province == "Oregon") ~ "US",
+                     (country_new == "Murica") & (State_or_Province == "California") ~ "US",
+                     (country_new == "Murica") & (State_or_Province == "NJ") ~ "US",
+                     (is.na(country_new)) & (State_or_Province == "CA") ~ "US",
+                     (is.na(country_new)) & (State_or_Province == "WA") ~ "US",
+                     (is.na(country_new)) & (State_or_Province == "PA") ~ "US",
+                     (is.na(country_new)) & (State_or_Province == "Massachusetts") ~ "US",
+                     (is.na(country_new)) & (State_or_Province == "Arizona") ~ "US",
+                     (is.na(country_new)) & (State_or_Province == "Illinois") ~ "US",
+                     (is.na(country_new)) & (State_or_Province == "United States") ~ "US",
+                     (is.na(country_new)) & (State_or_Province == "USA") ~ "US",
+                     
+ #cleaning data for UK entries                     
+         country_new %in% c("United Kindom",
+                          "England",
+                          "Endland",
+                          "Scotland",
+                          "U.k.",
+                          "Uk",
+                          "United Kingdom") ~ "UK",
+ 
+ #cleaning data for Canada entries  
+          country_new %in% c("Can",
+                            "Canada`",
+                            "Canae") ~ "Canada",
+ 
+ #general cleaning
+          country_new == "Netherlands" ~ "The Netherlands",
+          country_new == "Uae" ~ "UAE",
+          country_new == "Brasil" ~ "Brazil",
+          country_new == "España" ~ "Spain",
+          (country_new == "Korea") & (State_or_Province == "Incheon") ~ "South Korea",
+ 
+    #Where Country column contains a number but State/ Province indicates the country is the US
+      country_new == "32" ~ "US",
+      country_new == "45" ~ "US",
+      country_new == "46" ~ "US",
+      country_new == "35" ~ "US",
+      country_new == "30.0" ~ "US",
+      country_new == "45.0" ~ "US",
+      country_new == "44.0" ~ "US",
+      country_new == "54.0" ~ "US",
+      country_new == "47.0" ~ "US",
+      country_new == "51.0" ~ "US",
+ 
+ #cleaning data for Unknown Country entries 
+          country_new %in% c("1",
+                          "A",
+                          "A Tropical Island South Of The Equator",
+                          "Atlantis",
+                          "Earth",
+                          "Europe",
+                          "Fear And Loathing",
+                          "God's Country",
+                          "Insanity Lately",
+                          "I Don't Know Anymore",
+                          "Neverland",
+                          "Not The Usa Or Canada",
+                          "One Of The Best Ones",
+                          "See Above",
+                          "Somewhere",
+                          "Soviet Canuckistan",
+                          "Subscribe To Dm4uz3 On Youtube",
+                          "Sub-Canadian North America... 'Merica",
+                          "The Republic Of Cascadia",
+                          "There Isn't One For Old Men",
+                          "This One",
+                          "Denial") ~ "Unknown Country",
+         (country_new == "Cascadia") & (State_or_Province == "cascadia") ~ "Unknown Country",
+         (is.na(country_new)) & (is.na(State_or_Province)) ~ "Unknown Country",
+         (is.na(country_new)) & (State_or_Province == "48") ~ "Unknown Country",
+         (country_new == "Murica") & (State_or_Province == "Gawja") ~ "Unknown Country",
+                       TRUE ~ country_new
+             )
+  )
+
+```
+
+
+
+```{r}
+#looking at 'State or Province" for valid response to impute data for country
+#assumption that"IL" is Illinois and thus country is US
+candy_country_clean %>% 
+  select(country_new, State_or_Province) %>% 
+filter(country_new %in% c("1", "30.0", "32", "35", "44.0", "45", "45.0", "46", "47.0", "51.0", "54.0"))
+
+
+view(candy_country_clean)
+```
+
+
+```{r}
+candy_country_clean %>% 
+  count(country_new)
+```
+
+```{r}
+candy_country_clean %>% 
+  select(country_new, State_or_Province) %>% 
+filter(country_new == "Korea")
+```
+
+```{r}
+candy_country_clean %>% 
+  select(country_new, State_or_Province) %>% 
+filter(is.na(country_new))
+```
+

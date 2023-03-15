@@ -1,0 +1,28 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+#load libraries
+library(tidyverse)
+library(readr)
+library(here)
+library(janitor)
+library(readxl)
+```
+
+```{r}
+#test where the top level of the project directory is 
+here::here()
+```
+
+
+```{r}
+#read in and view dataset
+year_2015 <- read_excel(here("raw_data/boing-boing-candy-2015.xlsx"))
+year_2016 <- read_excel(here("raw_data/boing-boing-candy-2016.xlsx"))
+year_2017 <- read_excel(here("raw_data/boing-boing-candy-2017.xlsx"))
+view(year_2015)
+view(year_2016)
+view(year_2017)
+```

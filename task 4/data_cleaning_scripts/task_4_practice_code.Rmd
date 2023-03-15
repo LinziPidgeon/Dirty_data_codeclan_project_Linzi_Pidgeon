@@ -1,0 +1,157 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+library(skimr)
+library(janitor)
+library(stringr)
+
+# 1. Test where the the level of the project directory is
+
+here::here()
+
+# 2. Read the data into R and set the path to the data file --------------------
+
+# i) candy-2015 data
+
+candy_2015 <- read_excel(
+  here("raw_data/boing-boing-candy-2015.xlsx")
+)
+
+skim(candy_2015) # data summary
+
+
+
+# ii)  candy-2016 data
+
+candy_2016 <- read_excel(
+  here("raw_data/boing-boing-candy-2016.xlsx")
+)
+
+skim(candy_2016)
+
+
+# iii) candy-2017 data
+
+candy_2017 <- read_excel(
+  here("raw_data/boing-boing-candy-2017.xlsx")
+)
+
+skim(candy_2017)
+
+
+
+
+
+------------------------------------------------------------------------------
+# select range of candy bars
+candy_rows <- select(candy_2015,  '[Butterfinger]': '[York Peppermint Patties]')
+
+candy_rows
+
+
+ # remove brackets from column names
+
+library(janitor)
+
+candy_clean <- clean_names(candy_rows) 
+
+candy_clean
+  
+  class(candy_clean)
+  class(candy_rows)
+  
+  # pivot_longer()
+  
+  pivot_candy <- candy_clean %>% 
+    pivot_longer(cols = ("butterfinger":"york_peppermint_patties"),
+                 names_to = "candy_type",
+                 values_to = "rating")
+  
+  # distinct ratings
+  
+ distinct_ratings <- pivot_candy %>% 
+   distinct(rating)
+ 
+ # 2016 data-----------------------------------------------------------
+ # distinct country
+ 
+clean_2016 <- clean_names(candy_2016) 
+ view(clean_2016)
+
+ 
+ distinct_country <- clean_2016 %>% 
+   distinct(which_country_do_you_live_in)
+ 
+ sorted_country <- distinct_country %>% 
+   arrange(which_country_do_you_live_in)
+
+ sorted_country
+```
+
+```{r}
+distint_candy <- pivot_candy %>% 
+  distinct(candy_type) %>% 
+   arrange(candy_type) 
+
+view(distint_candy)
+
+colnames(candy_2016)
+```
+
+```{r}
+#generating yearin numeric format
+##added in library(stringr)
+candy_year <- candy_2016 %>% 
+  mutate(year = as.numeric(str_sub(Timestamp, start = 1, end = 4)),
+         .after = Timestamp)
+
+candy_year %>% 
+  distinct(year)
+clean_2016 %>% 
+  distinct(your_gender)
+
+
+clean_2016 %>% 
+  count(your_gender)
+
+clean_2016 %>% 
+  count(which_country_do_you_live_in)
+
+```
+```{r}
+
+country_update <- clean_2016 %>%  
+  mutate(country_clean = which_country_do_you_live_in,.after = which_country_do_you_live_in) %>% 
+  mutate(country_clean = 
+           case_when(
+         which_country_do_you_live_in %in% c("United States of America", 
+                                             "USA! USA! USA!", 
+                                             "USA! USA!", 
+                                             "The Yoo Ess of Aaayyyyyy", 
+                                             "USA (I think but it's an election year so who can really tell)",
+                                             "USA USA USA",
+                                             "USA USA USA USA",
+                                             "United Sates",
+                                             "USSA",
+                                             "United State",
+                                             "United States",
+                                             "uSA",
+                                             "usa",
+                                             "united states") ~ "USA",
+         which_country_do_you_live_in == "United Kindom" ~ "United Kingdom",
+             TRUE ~ country_clean
+             )
+         )
+
+country_update %>% 
+  count(country_clean)
+
+view(country_update)
+```
+

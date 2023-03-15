@@ -1,0 +1,63 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+library(skimr)
+library(janitor)
+library(stringr)
+```
+
+```{r}
+candy_raw_2016 <- read_excel(
+  here("raw_data/boing-boing-candy-2016.xlsx"))
+```
+
+```{r}
+candy_clean_2016 <- clean_names(candy_raw_2016) 
+```
+
+```{r}
+#generating year in numeric format and assigning column names for binding
+
+candy_clean_2016 <- candy_clean_2016 %>% 
+  mutate(Year = as.numeric(str_sub(timestamp, start = 1, end = 4)),
+         .after = timestamp) %>% 
+  rename(Age = how_old_are_you,
+         Gender = your_gender,
+         Trick_or_Treat = are_you_going_actually_going_trick_or_treating_yourself,
+         Country = which_country_do_you_live_in,
+         State_or_Province = which_state_province_county_do_you_live_in)
+     
+```
+
+
+
+
+```{r}
+
+#tidying up country data
+
+
+candy_clean_2016 %>% 
+  count(Country)
+```
+
+
+
+
+```{r}
+candy_clean_2016 %>% 
+  count(please_list_any_items_not_included_above_that_give_you_joy)
+```
+
+
+```{r}
+colnames(candy_clean_2016)
+
+```
+

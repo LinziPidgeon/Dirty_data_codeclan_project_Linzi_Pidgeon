@@ -1,0 +1,16 @@
+Variables to keep based on q's to answer
+1. all candy types
+2. year
+3. age
+4. going out trick or treating
+5. gender
+6. country
+
+We think we'll use R bind to combine the datasets (adding one beneath the other)
+For R bind to work we need
+ - same number of columns in all 3 datasets
+ - the column headers need to be the same in all 3.
+
+
+We can remove unnecessary columns before joining all 3
+HINT (selection helper, starts with, contains etc.)

@@ -1,0 +1,75 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#load libraries
+library(tidyverse)
+library(readr)
+library(here)
+library(janitor)
+```
+
+
+```{r}
+#test where the top level of the project directory is 
+here::here()
+```
+
+```{r}
+#read in and view dataset
+decathlon <- read_rds(here("raw_data/decathlon.rds"))
+view(decathlon)
+```
+
+
+```{r}
+#check row names and convert so column is named "name"
+rownames(decathlon)
+decathlon <- rownames_to_column(decathlon, var = "name")
+# clean column names 
+decathlon_clean <- clean_names(decathlon)
+```
+
+
+```{r}
+#clean surname style - assumption that names are the same and should be in title case and then display by name alphabetically
+decathlon_clean <- decathlon_clean %>% 
+  mutate(name = str_to_title(name)) %>% 
+arrange(name, competition)
+```
+
+```{r}
+#clean column names
+decathlon_clean <- decathlon_clean %>% 
+  rename("100_metre_race" = x100m,
+         "400_metre_race" = x400m,
+         "110_metre_hurdles" = x110m_hurdle,
+         "1500_metre_race" = x1500m)
+
+view(decathlon_clean)
+```
+
+
+```{r}
+#save the data into 
+write.csv(decathlon_clean, here("clean_data/decathlon_clean.csv"))
+
+```
+
+
+
+```{r}
+#decathlon_clean <- decathlon_clean %>%
+  #pivot_longer(cols = c("100_metre_race":"1500_metre_race"), 
+               #names_to = "decathlon_event", 
+               #values_to = "time") 
+
+#decathlon_clean <- decathlon_clean %>% 
+  #select(name, decathlon_event, time, rank, points, competition)
+
+
+#view(decathlon_clean)#
+```
+
