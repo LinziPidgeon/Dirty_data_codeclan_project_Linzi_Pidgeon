@@ -1,0 +1,240 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+library(skimr)
+library(janitor)
+library(stringr)
+```
+
+```{r}
+candy_raw_2015 <- read_excel(
+  here("raw_data/boing-boing-candy-2015.xlsx"))
+candy_raw_2016 <- read_excel(
+  here("raw_data/boing-boing-candy-2016.xlsx"))
+candy_raw_2017 <- read_excel(
+  here("raw_data/boing-boing-candy-2017.xlsx"))
+
+```
+
+
+```{r}
+candy_clean_2015 <- clean_names(candy_raw_2015)
+candy_clean_2016 <- clean_names(candy_raw_2016) 
+candy_clean_2017 <- clean_names(candy_raw_2017) 
+
+```
+
+```{r}
+#2015
+candy_clean_2015 <- candy_clean_2015 %>% 
+  mutate(Year = as.numeric(str_sub(timestamp, start = 1, end = 4)),
+         .after = timestamp) %>% 
+  mutate(Age = how_old_are_you)
+#view(candy_clean_2015)
+```
+
+
+
+```{r}
+#2016 generating year in numeric format and assigning column names for binding
+candy_clean_2016 <- candy_clean_2016 %>% 
+  mutate(Year = as.numeric(str_sub(timestamp, start = 1, end = 4)),
+         .after = timestamp) %>% 
+  mutate(Age = how_old_are_you)
+#view(candy_clean_2016)
+
+```
+
+
+```{r}
+#2017 generating year in numeric format and assigning column names for binding
+
+candy_clean_2017 <- candy_clean_2017 %>% 
+  mutate(Year = as.numeric(2017),
+.after = internal_id)%>% 
+mutate(Age = q3_age)
+#view(candy_clean_2017)
+```
+
+
+```{r}
+#selecting columns
+candy_selection_2015 <- candy_clean_2015 %>% 
+  select(Year, Age)
+
+candy_selection_2016 <- candy_clean_2016 %>% 
+  select(Year, Age)
+
+candy_selection_2017 <- candy_clean_2017 %>% 
+  select(Year, Age)
+```
+
+```{r}
+#binding years
+
+candy_age <- rbind(candy_selection_2015,candy_selection_2016,candy_selection_2017)
+
+view(candy_age)
+```
+
+```{r}
+#cleaning data for age
+candy_age <- candy_age %>% 
+  mutate(Age_clean = str_replace_all(Age, "\\.0$","")) %>% 
+  
+
+#cleaning data for age unknown
+  mutate(Age_clean = 
+           case_when(Age_clean %in% c("your mom",
+                                      "x",
+                                      "very",
+                                      "Too old to trick or treat without it being creepy",
+                                      "too old for this",
+                                      "Too old",
+                                      "too old",
+                                      "too",
+                                      "So old",
+                                      "See question 2",
+                                      "Same as yo mama",
+                                      "really old",
+                                      "over retirement age",
+                                      "Over 50",
+                                      "over 40",
+                                      "Older than you",
+                                      "older than I want to be",
+                                      "Older than i act",
+                                      "older than dirt",
+                                      "Old, very old",
+                                      "old enough to party",
+                                      "Old enough to not Trick or Treat.",
+                                      "Old enough to know better",
+                                      "old enough to know better",
+                                      "Old enough",
+                                      "old enough",
+                                      "old but still know joy from despair",
+                                      "OLD",
+                                      "Old",
+                                      "old",
+                                      "Not tell",
+                                      "Not as old as you...",
+                                      "none of your business",
+                                      "no",
+                                      "Nevermind",
+                                      "Never ask a woman that question.",
+                                      "MY NAME JEFF",
+                                      "middle-aged",
+                                      "Many",
+                                      "In dog years?",
+                                      "I remember the Nixon administration",
+                                      "I can remember when Java was a cool new language",
+                                      "Hahahahahaha",
+                                      "hahahahaha",
+                                      "gofuckyourself",
+                                      "Enough",
+                                      "enough",
+                                      "dadt",
+                                      "blah",
+                                      "As old as my tongue a few years older than my teeth",
+                                      "Ancient",
+                                      "ancient",
+                                      "Adult",
+                                      "--",
+                                      "45-55",
+                                      "50+",
+                                      "55+",
+                                      "60+",
+                                      "65+",
+                                      ">39",
+                                      "?",
+                                      "７１＋",
+                                      "0x2A",
+                                      "24-50",
+                                      "30's",
+                                      "30s",
+                                      "30+",
+                                      "40s",
+                                      "50ish",
+                                      "40something",
+                                      "5 months",
+                                      "1.0E18",
+                                      "9.0E22",
+                                      "0.62",
+                                      "a million") ~ "unknown age",
+                                      (is.na(Age_clean))~ "unknown age",
+#general cleaning
+        Age_clean == "sixty-nine" ~ "69",
+        Age_clean == "Good Lord!  I'm 43!" ~ "43",
+        Age_clean == "Fifty.  Nine.  Ish." ~ "59",
+        Age_clean == "27^." ~ "27",
+        Age_clean == "37 (I'm taking a child)" ~ "37",
+        Age_clean == "40. Deal with it." ~ "40",
+        Age_clean == "42 - I'm taking my kid" ~ "42",
+        Age_clean == "46 Halloweens." ~ "46",
+        Age_clean == "49 11/12ths" ~ "49",
+        Age_clean == "50 (despair)" ~ "50",
+        Age_clean == "50, taking a 13 year old." ~ "50",
+        Age_clean == "70.5" ~ "70",
+        Age_clean == "44.4444" ~ "44",
+        Age_clean == "39.4" ~ "39",
+        Age_clean == "23.2" ~ "23",
+        Age_clean == "18.75" ~ "18",
+        Age_clean == "18.17" ~ "18",
+        Age_clean == "45, but the 8-year-old Huntress and bediapered Unicorn give me political cover and social respectability.  However, I WILL eat more than they do combined." ~ "45",
+        Age_clean == "59 on the day after Halloween" ~ "58",
+        Age_clean == "27^" ~ "27",
+        TRUE ~ Age_clean
+           )
+  ) %>% 
+
+
+mutate(Age_clean = str_replace_all(Age_clean, "[:punct:]$","")) %>% 
+mutate(Age_clean = str_replace_all(Age_clean, "^$","")) %>% 
+mutate(Age_clean = str_replace_all(Age_clean, "[s-z]$","")) %>% 
+
+mutate(Age_clean = as.numeric(Age_clean))
+
+       
+   view(candy_age)  
+
+   
+```
+
+
+
+```{r}
+candy_age %>% 
+  count(Age_clean)
+```
+
+
+```{r}
+candy_age%>% 
+  select(Age, Age_clean) %>% 
+filter(Age_clean == "unknown age")
+```
+
+
+```{r}
+  #mutate(Age = as.numeric(how_old_are_you),
+         #.after = how_old_are_you)
+```
+
+```{r}
+ distinct_age <- candy_age %>% 
+  distinct(Age_clean)
+```
+
+```{r}
+options(scipen=999)
+```
+
