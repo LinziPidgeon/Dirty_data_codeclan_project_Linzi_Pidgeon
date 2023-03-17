@@ -41,6 +41,12 @@
 - Changed to English spelling for all entries i.e Brazil and Spain
 
 
+#Age
 
+- Any entries that did not contain an age were removed
+- Entries that contained valid ages with the age spelt were converted to digits as opposed to characters
+- Entries where a definitive age could not be determined were removed, for example 24-50/ 50ish
+- Entries written in scientific notation were removed
+- Entries with a decimal point were converted to whole numbers
 
 
